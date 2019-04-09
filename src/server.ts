@@ -3,8 +3,9 @@ import fs from 'fs';
 import bodyParser from 'body-parser';
 
 const app = express();
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded());
+app.use(bodyParser.text({
+    type: 'text/plain',
+}));
 
 app.post('/api/v1/bugreport', (req: Request, res: Response) => {
     try {
@@ -19,15 +20,27 @@ app.post('/api/v1/bugreport', (req: Request, res: Response) => {
 app.listen(3000, () => console.log('listening on port 3000'));
 
 const saveData = (data: string, success: () => void) => {
-    const date = new Date(Date.now()).toUTCString().replace(/[\W_]+/g, '-');
-    const fileName = `bugreport-${date}.json`;
-    fs.writeFile(fileName, JSON.stringify(data, null, 4), (err) => {
+    const date = timestampToDateString(Date.now());
+    const fileName = `bugreport-${date}.txt`;
+    fs.writeFile(fileName, data, (err) => {
         if (err) {
             console.log('error writing file', err);
             throw err;
         }
-        console.log('data: ', data);
         console.log('json saved to: ', fileName);
         success();
     });
+};
+
+const timestampToDateString = (timestamp: number, withTimezone: boolean = false): string => {
+    const date = new Date(timestamp);
+    if (withTimezone) {
+        date.setTime(date.getTime() - date.getTimezoneOffset() * 60 * 1000);
+    }
+    const prefix = (s: number, p: string) => ('' + p + s).substring(('' + s).length);
+    const prefix2 = (s: number) => prefix(s, '00');
+    const prefix3 = (s: number) => prefix(s, '000');
+    const datePart = `${date.getUTCFullYear()}-${prefix2(date.getUTCMonth() + 1)}-${prefix2(date.getUTCDate())}`;
+    const timePart = `${prefix2(date.getUTCHours())}:${prefix2(date.getUTCMinutes())}:${prefix2(date.getUTCSeconds())}.${prefix3(date.getUTCMilliseconds())}`;
+    return `${datePart}T${timePart}Z`;
 };
