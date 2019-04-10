@@ -20,7 +20,7 @@ app.post('/api/v1/bugreport', (req: Request, res: Response) => {
 app.listen(3000, () => console.log('listening on port 3000'));
 
 const saveData = (data: string, success: () => void) => {
-    const date = timestampToDateString(Date.now());
+    const date = timestampToDateString(Date.now(), true);
     const fileName = `bugreport-${date}.txt`;
     fs.writeFile(fileName, data, (err) => {
         if (err) {
