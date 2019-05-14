@@ -4,6 +4,8 @@ import bodyParser from 'body-parser';
 // @ts-ignore
 import email from 'emailjs';
 
+const password = fs.readFileSync('password' , { encoding: 'utf8' });
+
 const app = express();
 app.use(bodyParser.text({
     type: 'text/plain',
@@ -36,7 +38,6 @@ const saveData = (data: string, dateString: string, success: () => void) => {
 };
 
 const sendEmail = (data: string, dateString: string) => {
-    const password = fs.readFileSync('password' , { encoding: 'utf8' });
     const server = email.server.connect({
         user: 'felfelebugreport',
         password,
