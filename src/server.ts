@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express';
 import fs from 'fs';
 import bodyParser from 'body-parser';
+import email from 'emailjs';
 
 const app = express();
 app.use(bodyParser.text({
@@ -9,9 +10,11 @@ app.use(bodyParser.text({
 
 app.post('/api/v1/bugreport', (req: Request, res: Response) => {
     try {
-        saveData(req.body, () => {
+        const dateString = timestampToDateString(Date.now(), true);
+        saveData(req.body, dateString, () => {
             res.status(201).send('Got a POST request');
         });
+        sendEmail(req.body, dateString);
     } catch (e) {
         res.status(500).send('error saving bugreport');
     }
@@ -19,9 +22,8 @@ app.post('/api/v1/bugreport', (req: Request, res: Response) => {
 
 app.listen(3000, () => console.log('listening on port 3000'));
 
-const saveData = (data: string, success: () => void) => {
-    const date = timestampToDateString(Date.now(), true);
-    const fileName = `bugreport-${date}.txt`;
+const saveData = (data: string, dateString: string, success: () => void) => {
+    const fileName = `bugreport-${dateString}.txt`;
     fs.writeFile(fileName, data, (err) => {
         if (err) {
             console.log('error writing file', err);
@@ -30,6 +32,28 @@ const saveData = (data: string, success: () => void) => {
         console.log('json saved to: ', fileName);
         success();
     });
+};
+
+const sendEmail = (data: string, dateString: string) => {
+    const password = fs.readFileSync('password' , { encoding: 'utf8' });
+    const server = email.server.connect({
+        user: 'felfelebugreport',
+        password,
+        host: 'smtp.gmail.com',
+        tls: {ciphers: 'SSLv3'},
+     });
+
+    const message = {
+        text: data,
+        from: 'felfelebugreport@gmail.com',
+        to: 'bugreport@felfele.com',
+        subject: 'Bug report: ' + dateString,
+        attachment: [
+            { data },
+        ],
+    };
+
+    server.send(message, (err: any, msg: string) => console.log(err || msg));
 };
 
 const timestampToDateString = (timestamp: number, withTimezone: boolean = false): string => {
