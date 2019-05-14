@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express';
 import fs from 'fs';
 import bodyParser from 'body-parser';
+// @ts-ignore
 import email from 'emailjs';
 
 const app = express();
