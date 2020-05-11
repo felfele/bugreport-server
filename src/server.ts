@@ -4,6 +4,9 @@ import bodyParser from 'body-parser';
 // @ts-ignore
 import email from 'emailjs';
 
+const LISTEN_PORT = 3000;
+const LISTEN_HOST = '127.0.0.1';
+
 const password = fs.readFileSync('password' , { encoding: 'utf8' });
 
 const app = express();
@@ -23,7 +26,7 @@ app.post('/api/v1/bugreport', (req: Request, res: Response) => {
     }
 });
 
-app.listen(3000, () => console.log('listening on port 3000'));
+app.listen(LISTEN_PORT, LISTEN_HOST, () => console.log('listening on port 3000'));
 
 const saveData = (data: string, dateString: string, success: () => void) => {
     const fileName = `bugreport-${dateString}.txt`;
